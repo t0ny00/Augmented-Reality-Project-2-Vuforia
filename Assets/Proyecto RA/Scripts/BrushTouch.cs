@@ -16,8 +16,7 @@ public class BrushTouch : MonoBehaviour {
 	void Update () {
 
         Rect imgRect = new Rect(Camera.main.WorldToScreenPoint(rec.position).x, Camera.main.WorldToScreenPoint(rec.position).y, rec.sizeDelta.x, rec.sizeDelta.y);
-        print(imgRect.position.y);
-        if (imgRect.Contains(Camera.main.WorldToScreenPoint(pointer.transform.position)))
+        if (imgRect.Contains(Camera.main.WorldToScreenPoint(pointer.transform.position)) && pointer.parent.GetComponent<Vuforia.DefaultTrackableEventHandler>().track)
         {
             ARCamera.GetComponent<Painter>().col = color;
         }

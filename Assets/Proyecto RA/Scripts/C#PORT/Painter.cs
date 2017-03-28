@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using Vuforia;
 
 public class Painter : MonoBehaviour 
 {
@@ -16,6 +17,10 @@ public class Painter : MonoBehaviour
     {
         baseTex = (Texture2D)Instantiate(imag.texture);
         cameraf = cam.GetComponent<Camera>();
+        Matrix4x4 mat = Camera.main.projectionMatrix;
+        mat *= Matrix4x4.Scale(new Vector3(-1, 1, 1));
+        Camera.main.projectionMatrix = mat;
+        Cursor.visible = false;
     }
 
 
@@ -47,10 +52,10 @@ public class Painter : MonoBehaviour
     public int zoom = 1;
     Drawing.BezierPoint[] BezierPoints;
     public GameObject pointer;
+    public int width = 50;
 
-
-
-
+    public Texture crosshair;
+    private Vector2 mouse;
     void OnGUI()
     {
         /*GUI.skin = gskin;
@@ -102,7 +107,8 @@ public class Painter : MonoBehaviour
         GUI.DrawTexture(new Rect(100, 0, baseTex.width * zoom, baseTex.height * zoom), baseTex);
         GUILayout.EndArea();*/
         //GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), baseTex);
-        
+        if ( pointer.transform.parent.GetComponent<DefaultTrackableEventHandler>().track)
+            GUI.DrawTexture(new Rect(mouse.x, mouse.y, crosshair.width, crosshair.height), crosshair);
     }
 
     private Vector2 preDrag;
@@ -110,12 +116,14 @@ public class Painter : MonoBehaviour
     {
         
         Rect imgRect = new Rect(0, 0, baseTex.width * zoom, baseTex.height * zoom);
-        Vector2 mouse = cameraf.WorldToScreenPoint(pointer.transform.position);
+        mouse = cameraf.WorldToScreenPoint(pointer.transform.position);
         //Vector2 mouse = Input.mousePosition;
+       
         mouse.y = Screen.height - mouse.y;
 
         if (Input.GetKeyDown("n")) tool = Tool.Brush;
         if (Input.GetKeyDown("m")) tool = Tool.Eraser;
+        
 
         if (Input.GetKeyDown("mouse 0"))
         {
@@ -123,7 +131,7 @@ public class Painter : MonoBehaviour
             if (imgRect.Contains(mouse))
             {
 
-                dragStart = mouse - new Vector2(imgRect.x, imgRect.y);
+                dragStart = mouse ;
                 Debug.Log(imgRect.x);
                 dragStart.y = imgRect.height - dragStart.y;
                 dragStart.x = Mathf.Round(dragStart.x / zoom);
@@ -156,53 +164,36 @@ public class Painter : MonoBehaviour
 
             if (tool == Tool.Brush)
             {
-                Brush(dragEnd, preDrag);
+                Brush(dragEnd, preDrag, width);
             }
             if (tool == Tool.Eraser)
             {
-                Eraser(dragEnd, preDrag);
+                Eraser(dragEnd, preDrag, width);
             }
 
         }
         if (Input.GetKeyUp("mouse 0") && dragStart != Vector2.zero)
         {
-            /*if (tool == Tool.Line)
-            {
-                dragEnd = mouse - new Vector2(imgRect.x, imgRect.y);
-                dragEnd.x = Mathf.Clamp(dragEnd.x, 0, imgRect.width);
-                dragEnd.y = imgRect.height - Mathf.Clamp(dragEnd.y, 0, imgRect.height);
-                dragEnd.x = Mathf.Round(dragEnd.x / zoom);
-                dragEnd.y = Mathf.Round(dragEnd.y / zoom);
-                Debug.Log("Draw Line");
-                Drawing.NumSamples = AntiAlias;
-                if (stroke.enabled)
-                {
-                    baseTex = Drawing.DrawLine(dragStart, dragEnd, lineTool.width, col, baseTex, true, col2, stroke.width);
-                }
-                else
-                {
-                    baseTex = Drawing.DrawLine(dragStart, dragEnd, lineTool.width, col, baseTex);
-                }
-            }*/
+            
             dragStart = Vector2.zero;
             dragEnd = Vector2.zero;
         }
         preDrag = dragEnd;
     }
 
-    void Brush(Vector2 p1, Vector2 p2)
+    void Brush(Vector2 p1, Vector2 p2, int width)
     {
         Drawing.NumSamples = AntiAlias;
         if (p2 == Vector2.zero)
         {
             p2 = p1;
         }
-        Drawing.PaintLine(p1, p2, brush.width, col, brush.hardness, baseTex);
+        Drawing.PaintLine(p1, p2, width, col, brush.hardness, baseTex);
         baseTex.Apply();
         imag.texture = (Texture) baseTex;
     }
 
-    void Eraser(Vector2 p1, Vector2 p2)
+    void Eraser(Vector2 p1, Vector2 p2, int width)
     {
         Drawing.NumSamples = AntiAlias;
         Color col = sourceBaseTex.GetPixel(1,1);
@@ -210,7 +201,7 @@ public class Painter : MonoBehaviour
         {
             p2 = p1;
         }
-        Drawing.PaintLine(p1, p2, eraser.width, col, eraser.hardness, baseTex);
+        Drawing.PaintLine(p1, p2, width, col, eraser.hardness, baseTex);
         baseTex.Apply();
     }
 
@@ -235,4 +226,6 @@ public class Painter : MonoBehaviour
         public bool enabled = false;
         public float width = 1;
     }
+
+    
 }

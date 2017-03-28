@@ -8,6 +8,7 @@ using UnityEngine;
 
 namespace Vuforia
 {
+
     /// <summary>
     /// A custom handler that implements the ITrackableEventHandler interface.
     /// </summary>
@@ -17,13 +18,14 @@ namespace Vuforia
         #region PRIVATE_MEMBER_VARIABLES
  
         private TrackableBehaviour mTrackableBehaviour;
-    
+
         #endregion // PRIVATE_MEMBER_VARIABLES
 
+        public bool track = false;
 
 
         #region UNTIY_MONOBEHAVIOUR_METHODS
-    
+
         void Start()
         {
             mTrackableBehaviour = GetComponent<TrackableBehaviour>();
@@ -70,6 +72,7 @@ namespace Vuforia
         {
             Renderer[] rendererComponents = GetComponentsInChildren<Renderer>(true);
             Collider[] colliderComponents = GetComponentsInChildren<Collider>(true);
+            track = true;
 
             // Enable rendering:
             foreach (Renderer component in rendererComponents)
@@ -91,6 +94,7 @@ namespace Vuforia
         {
             Renderer[] rendererComponents = GetComponentsInChildren<Renderer>(true);
             Collider[] colliderComponents = GetComponentsInChildren<Collider>(true);
+            track = false;
 
             // Disable rendering:
             foreach (Renderer component in rendererComponents)
